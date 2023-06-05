@@ -133,6 +133,7 @@ GameObject:
   m_Component:
   - component: {fileID: 552207327}
   - component: {fileID: 552207328}
+  - component: {fileID: 552207329}
   m_Layer: 0
   m_Name: Scripts
   m_TagString: Untagged
@@ -168,6 +169,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   prefabsVertex: {fileID: 6648368818768139587, guid: 69ab859bd69c5cd47a1dc2440c5ab40f, type: 3}
+  mm: {fileID: 0}
+--- !u!114 &552207329
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 552207326}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf429d04a972a8e41abbb37f45f8dda5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &612049212
 GameObject:
   m_ObjectHideFlags: 0
@@ -182,7 +196,7 @@ GameObject:
   - component: {fileID: 612049213}
   m_Layer: 0
   m_Name: Plane
-  m_TagString: Untagged
+  m_TagString: Background
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
