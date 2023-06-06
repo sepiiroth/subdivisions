@@ -38,14 +38,14 @@ public class AddPointToCanvas : MonoBehaviour
                             mm.Polygons.Last().Vertices.Add(new Vertex(raycastHit.point));
                             if (mm.Polygons.Last().Vertices.Count > 1)
                             {
-                                mm.Polygons.Last().Edges.Add(new Edge(mm.Polygons.Last().Vertices.Last(),mm.Polygons.Last().Vertices[^2],mm.Polygons.Last()  ));
+                                mm.Polygons.Last().Edges.Add(new Structure.Edge(mm.Polygons.Last().Vertices.Last(), mm.Polygons.Last().Vertices[^2], mm.Polygons.Last()  ));
                             }
                             break;
                         case "Vertex":
                             if (mm.Polygons.Last().Vertices.Count == 1)
                             {
                                 mm.Polygons.Last().Vertices.Add(new Vertex(raycastHit.transform.position));
-                                mm.Polygons.Last().Edges.Add(new Edge(mm.Polygons.Last().Vertices.Last(),mm.Polygons.Last().Vertices[^2],mm.Polygons.Last()  ));
+                                mm.Polygons.Last().Edges.Add(new Structure.Edge(mm.Polygons.Last().Vertices.Last(), mm.Polygons.Last().Vertices[^2], mm.Polygons.Last()  ));
                                 break;
                             }
                             mm.Polygons.Add(new Polygon());
