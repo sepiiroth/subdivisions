@@ -109,8 +109,8 @@ public class CoonesAddPointToCanvas : MonoBehaviour
             polygon.edgesList.Add(edgeTemp.GetComponent<CoonesEdge>());
 
             newPolygon2D = polygon;
-            clearPolygon();
-            currentPolygon2D = newPolygon2D;
+            //clearPolygon();
+            //currentPolygon2D = newPolygon2D;
             //vertices = newVertices;
         }
         if (this.isPolygon)
