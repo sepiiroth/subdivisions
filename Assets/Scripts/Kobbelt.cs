@@ -23,14 +23,15 @@ public class Kobbelt : MonoBehaviour
 
     private Mesh Subdiv(Mesh mesh, int iteration)
     {
-        Mesh meshsub = mesh;
+        
 
         for (int i = 0; i < iteration; i++)
         {
-            meshsub = KobbeltSubdivision(meshsub);
+            Pertubate(mesh);
+            mesh = KobbeltSubdivision(mesh);
         }
 
-        return meshsub;
+        return mesh;
     }
 
     private Mesh KobbeltSubdivision(Mesh mesh)
@@ -59,8 +60,12 @@ public class Kobbelt : MonoBehaviour
             subVertices[vertices.Length + i] = center;
 
             int centerIndex = vertices.Length + i;
-            Pertubate(mesh);
 
+
+            
+
+
+            //nouveaux triangles
             subTriangles[triangles.Length + (9 * i)] = vertexIndex1;
             subTriangles[triangles.Length + (9 * i) + 1] = vertexIndex2;
             subTriangles[triangles.Length + (9 * i) + 2] = centerIndex;
@@ -121,8 +126,8 @@ public class Kobbelt : MonoBehaviour
         {
             int triangleIndex = i * 3;
 
-            if (mesh.vertices[triangles[triangleIndex]] == vertice 
-                || mesh.vertices[triangles[triangleIndex + 1]] == vertice 
+            if (mesh.vertices[triangles[triangleIndex]] == vertice
+                || mesh.vertices[triangles[triangleIndex + 1]] == vertice
                 || mesh.vertices[triangles[triangleIndex + 2]] == vertice)
             {
                 if (mesh.vertices[triangles[triangleIndex]] == vertice)
@@ -149,7 +154,6 @@ public class Kobbelt : MonoBehaviour
 
     }
 
-
-
+    
 }
 
