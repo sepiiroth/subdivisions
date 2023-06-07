@@ -185,6 +185,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   prefabsVertex: {fileID: 6648368818768139587, guid: 1337fe7bcc847804c9a88e997ff2ab9e, type: 3}
   prefabsEdge: {fileID: 1785634296114456112, guid: ccb3bc9a1b6d86a468c5f7c6057bae92, type: 3}
+  newPrefabsVertex: {fileID: 6648368818768139587, guid: 7d4c3e474fbf3eb458f9e847f46c0f8e, type: 3}
+  newPrefabsEdge: {fileID: 1785634296114456112, guid: 5473ce1f40327494f9be9bc2bf1eea76, type: 3}
+  u: 0.3
+  v: 0.25
 --- !u!1 &612049212
 GameObject:
   m_ObjectHideFlags: 0

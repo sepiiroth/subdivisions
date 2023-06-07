@@ -6,11 +6,25 @@ public class CoonesAddPointToCanvas : MonoBehaviour
 {
     public GameObject prefabsVertex;
     public GameObject prefabsEdge;
+
+    public GameObject newPrefabsVertex;
+    public GameObject newPrefabsEdge;
+
     private List<CoonesVertice> vertices = new List<CoonesVertice>();
+
+    private List<CoonesVertice> newVertices = new List<CoonesVertice>();
+
     public CoonesPolygons2D currentPolygon2D;
     public CoonesPolygons3D currentPolygon3D;
+
+    public CoonesPolygons2D newPolygon2D;
+
     private bool isPolygonCreated;
     private float offSet = -3;
+    private bool isPolygon;
+
+    [SerializeField] public float u;
+    [SerializeField] public float v;
 
     // Start is called before the first frame update
     void Start()
@@ -21,7 +35,7 @@ public class CoonesAddPointToCanvas : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetMouseButtonUp(0))
+        if (Input.GetMouseButtonUp(0) && !isPolygonCreated)
         {
             RaycastHit raycastHit;
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -37,40 +51,106 @@ public class CoonesAddPointToCanvas : MonoBehaviour
                 }
             }
         }
-        //Create polygons
+        //Create line / A
         if (Input.GetKeyDown(KeyCode.A) && !isPolygonCreated)
         {
             isPolygonCreated = true;
-            CreatePolygon2D();
+            CreatePolygonOrLine2D(false);
         }
-        //Clear everything
-        if (Input.GetKeyDown(KeyCode.Z))
+        //Create polygons / Z
+        if (Input.GetKeyDown(KeyCode.Z) && !isPolygonCreated)
+        {
+            isPolygonCreated = true;
+            CreatePolygonOrLine2D(true);
+        }
+        //Clear everything / E
+        if (Input.GetKeyDown(KeyCode.E))
         {
             isPolygonCreated = false;
-            clearPolygon(currentPolygon2D);
-            vertices.Clear();
+            clearPolygon();
         }
-        //Create 3D
-        if (Input.GetKeyDown(KeyCode.E))
+        //Create 3D / R
+        if (Input.GetKeyDown(KeyCode.R))
         {
             Create3DFrom2D(currentPolygon2D);
         }
+        //Chaiking / R
+        if (Input.GetKeyDown(KeyCode.T))
+        {
+            CutCorner(currentPolygon2D.edgesList);
+        }
     }
 
-    private void clearPolygon(CoonesPolygons2D polygonToDelete)
+    public void CreateChaiking()
     {
-        foreach(var poly in polygonToDelete.edgesList)
-        {
-            Destroy(poly.gameObject);
-        }
+        //TODO Chaiking
 
-        foreach (var poly in polygonToDelete.verticesList)
+    }
+
+    private void CutCorner(List<CoonesEdge> edgeList)
+    {
+        for (int i = 0; i < edgeList.Count; i++)
         {
-            Destroy(poly.gameObject);
+            var posNewVertU = Vector3.Lerp(edgeList[i].pointA.transform.position, edgeList[i].pointB.transform.position, u);
+            var posNewVertV = Vector3.Lerp(edgeList[i].pointB.transform.position, edgeList[i].pointA.transform.position, v);
+            var newVertU = Instantiate(newPrefabsVertex, posNewVertU, Quaternion.identity);
+            newVertices.Add(newVertU.GetComponent<CoonesVertice>());
+            var newVertV = Instantiate(newPrefabsVertex, posNewVertV, Quaternion.identity);
+            newVertices.Add(newVertV.GetComponent<CoonesVertice>());
+        }
+        CoonesPolygons2D polygon = new CoonesPolygons2D(newVertices);
+        for(int i = 0; i < polygon.verticesList.Count - 1; i++)
+        {
+            var edgeTemp = Instantiate(newPrefabsEdge, new Vector3(0, 0, -0.5f), Quaternion.identity);
+            edgeTemp.GetComponent<LineRenderer>().SetPosition(0, polygon.verticesList[i].transform.position);
+            edgeTemp.GetComponent<LineRenderer>().SetPosition(1, polygon.verticesList[i + 1].transform.position);
+            edgeTemp.GetComponent<CoonesEdge>().pointA = polygon.verticesList[i];
+            edgeTemp.GetComponent<CoonesEdge>().pointB = polygon.verticesList[i + 1];
+            polygon.edgesList.Add(edgeTemp.GetComponent<CoonesEdge>());
+
+            newPolygon2D = polygon;
+            clearPolygon();
+            currentPolygon2D = newPolygon2D;
+            //vertices = newVertices;
+        }
+        if (this.isPolygon)
+        {
+            var ClosingEdge = Instantiate(newPrefabsEdge, new Vector3(0, 0, -0.5f), Quaternion.identity);
+            ClosingEdge.GetComponent<LineRenderer>().SetPosition(0, polygon.verticesList[^1].transform.position);
+            ClosingEdge.GetComponent<LineRenderer>().SetPosition(1, polygon.verticesList[0].transform.position);
+            polygon.edgesList.Add(ClosingEdge.GetComponent<CoonesEdge>());
         }
     }
 
-    private void CreatePolygon2D()
+    private void clearPolygon()
+    {
+        if (currentPolygon2D != null)
+        {
+            foreach(var poly in currentPolygon2D.edgesList)
+            {
+                Destroy(poly.gameObject);
+            }
+            foreach (var poly in currentPolygon2D.verticesList)
+            {
+                Destroy(poly.gameObject);
+            }
+        }
+
+        if(currentPolygon3D != null)
+        {
+            foreach (var poly in currentPolygon3D.edgesList)
+            {
+                Destroy(poly.gameObject);
+            }
+            foreach (var poly in currentPolygon3D.verticesList)
+            {
+                Destroy(poly.gameObject);
+            }
+        }
+        vertices.Clear();
+    }
+
+    private void CreatePolygonOrLine2D(bool isPolygon)
     {
         CoonesPolygons2D polygon = new CoonesPolygons2D(vertices);
 
@@ -79,8 +159,21 @@ public class CoonesAddPointToCanvas : MonoBehaviour
             var edgeTemp = Instantiate(prefabsEdge, new Vector3(0, 0, -0.1f), Quaternion.identity);
             edgeTemp.GetComponent<LineRenderer>().SetPosition(0, polygon.verticesList[i].transform.position);
             edgeTemp.GetComponent<LineRenderer>().SetPosition(1, polygon.verticesList[i + 1].transform.position);
+            edgeTemp.GetComponent<CoonesEdge>().pointA = polygon.verticesList[i];
+            edgeTemp.GetComponent<CoonesEdge>().pointB = polygon.verticesList[i + 1];
             polygon.edgesList.Add(edgeTemp.GetComponent<CoonesEdge>());
         }
+        if (isPolygon)
+        {
+            var ClosingEdge = Instantiate(prefabsEdge, new Vector3(0, 0, -0.1f), Quaternion.identity);
+            ClosingEdge.GetComponent<LineRenderer>().SetPosition(0, polygon.verticesList[^1].transform.position);
+            ClosingEdge.GetComponent<LineRenderer>().SetPosition(1, polygon.verticesList[0].transform.position);
+            ClosingEdge.GetComponent<CoonesEdge>().pointA = polygon.verticesList[^1];
+            ClosingEdge.GetComponent<CoonesEdge>().pointB = polygon.verticesList[0];
+            polygon.edgesList.Add(ClosingEdge.GetComponent<CoonesEdge>());
+        }
+        this.isPolygon = isPolygon;
+
         currentPolygon2D = polygon;
     }
 
@@ -118,6 +211,6 @@ public class CoonesAddPointToCanvas : MonoBehaviour
                 polygon.edgesList.Add(edgeTemp.GetComponent<CoonesEdge>());
             }
         }
+        currentPolygon3D = polygon;
     }
-
 }

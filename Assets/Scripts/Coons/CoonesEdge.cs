@@ -13,4 +13,14 @@ public class CoonesEdge : MonoBehaviour
         //gameObject.GetComponent<LineRenderer>().SetPosition(1, pointB.transform.position);
 
     }
+
+    public Vector3 GetVector()
+    {
+        return (pointB.transform.position - pointA.transform.position).normalized;
+    }
+
+    public Vector3 GetReverseVector()
+    {
+        return (pointA.transform.position - pointB.transform.position).normalized;
+    }
 }
