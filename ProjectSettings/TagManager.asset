@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Background
   - Vertex
+  - Edge
   layers:
   - Default
   - TransparentFX

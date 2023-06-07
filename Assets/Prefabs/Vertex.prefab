@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 6648368818768139588}
   - component: {fileID: 6648368818768139589}
   - component: {fileID: 6648368818768139586}
+  - component: {fileID: 8996477984094123633}
   m_Layer: 0
   m_Name: Vertex
   m_TagString: Vertex
@@ -97,3 +98,16 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &8996477984094123633
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6648368818768139587}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64892414880ebf54a82f84332e9b8cd6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  vec3: {x: 0, y: 0, z: 0}
