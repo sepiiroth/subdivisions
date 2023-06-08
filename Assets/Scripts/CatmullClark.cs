@@ -4,15 +4,19 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-struct Centroid
+class Centroid
 {
-    public int id;
     public Vector3 position;
     public int faceIndex;
+
+    public Centroid(Vector3 position, int faceIndex)
+    {
+        this.position = position;
+        this.faceIndex = faceIndex;
+    }
 }
-struct EdgePoint
+class EdgePoint
 {
-    public int id;
     public Vector3 position;
     public List<Centroid> Centroids;
     public List<Vector3> vertices;
@@ -28,11 +32,17 @@ struct EdgePoint
 
         return compare.position == this.position;
     }
+
+    public EdgePoint(Vector3 position)
+    {
+        this.position = position;
+        this.vertices = new List<Vector3>();
+        this.Centroids = new List<Centroid>();
+    }
 }
 
-struct NewVertex
+class NewVertex
 {
-    public int id;
     public Vector3 position;
     public List<EdgePoint> EdgePoints;
     public List<Centroid> Centroids;
@@ -47,6 +57,13 @@ struct NewVertex
         NewVertex compare = (NewVertex) obj;
 
         return compare.position == this.position;
+    }
+    
+    public NewVertex(Vector3 position)
+    {
+        this.position = position;
+        this.EdgePoints = new List<EdgePoint>();
+        this.Centroids = new List<Centroid>();
     }
 }
 
@@ -65,10 +82,10 @@ public class CatmullClark : MonoBehaviour
     private List<EdgePoint> edgePoints;
     private List<NewVertex> vertexPoints;
 
-    private int vertexIndex = 0;
     private int x = 0;
 
-    private List<Vector3> newVerticesList = new List<Vector3>();
+    private Vector3 barycentreMesh;
+
     // Start is called before the first frame update
 
     public int nbIter = 1;
@@ -76,8 +93,8 @@ public class CatmullClark : MonoBehaviour
     {
         for (x = 0; x < nbIter; x++)
         {
-            vertexIndex = 0;
             mesh = cube.GetComponent<MeshFilter>();
+            barycentreMesh = GetBarycentreMesh();
 
             centroids = new List<Centroid>();
             edgePoints = new List<EdgePoint>();
@@ -99,7 +116,6 @@ public class CatmullClark : MonoBehaviour
             for (int i = 0; i < faces.Count; i++)
             {
                 ComputeCentroids(i);
-                //Instantiate(centroidsPrefabs, new Vector3(v.x * cube.transform.lossyScale.x,  v.y * cube.transform.lossyScale.y, v.z * cube.transform.lossyScale.z) + cube.transform.position , Quaternion.Euler(0, 0, 0));
             }
 
             foreach (var f in faces)
@@ -140,21 +156,9 @@ public class CatmullClark : MonoBehaviour
 
         barycentre = barycentre / face.Count;
 
-        var tempCent = new Centroid();
-        tempCent.position = barycentre;
-        tempCent.faceIndex = faceIndex;
-        tempCent.id = vertexIndex;
-        vertexIndex++;
-        newVerticesList.Add(barycentre);
-
+        var tempCent = new Centroid(barycentre, faceIndex);
         centroids.Add(tempCent);
-
-        /*
-        if (x >= 1)
-        {
-            var go = Instantiate(centroidsPrefabs, new Vector3(barycentre.x * cube.transform.lossyScale.x,  barycentre.y * cube.transform.lossyScale.y, barycentre.z * cube.transform.lossyScale.z) + cube.transform.position , Quaternion.Euler(0, 0, 0));
-            go.GetComponent<MeshRenderer>().material.color = Color.blue;
-        }*/
+        
         
     }
 
@@ -171,30 +175,19 @@ public class CatmullClark : MonoBehaviour
         var ep = vecV1 + vecV2 + centroids.First(x => x.faceIndex == indexesFaces1).position + centroids.First(x => x.faceIndex == indexesFaces2).position;
         ep /= 4;
 
-        EdgePoint temp = new EdgePoint();
-        temp.position = ep;
-        temp.Centroids = new List<Centroid>();
+        EdgePoint temp = new EdgePoint(ep);
         temp.Centroids.Add(centroids.First(x => x.faceIndex == indexesFaces1));
         temp.Centroids.Add(centroids.First(x => x.faceIndex == indexesFaces2));
-        temp.vertices = new List<Vector3>();
         temp.vertices.Add(vecV1);
         temp.vertices.Add(vecV2);
-        temp.id = vertexIndex;
 
         if (edgePoints.Contains(temp))
         {
             return;
         }
         
-        vertexIndex++;
-        newVerticesList.Add(ep);
         edgePoints.Add(temp);
-        /*if (x >= 1)
-        {
-            var go =Instantiate(centroidsPrefabs, new Vector3(ep.x * cube.transform.lossyScale.x,  ep.y * cube.transform.lossyScale.y, ep.z * cube.transform.lossyScale.z) + cube.transform.position , Quaternion.Euler(0, 0, 0));
-            go.GetComponent<MeshRenderer>().material.color = Color.red;
-        }*/
-        
+
     }
 
     void ComputeVertexPoints(int vertexIndex)
@@ -227,52 +220,24 @@ public class CatmullClark : MonoBehaviour
 
         var vp = (1f / n) * Q + (2f / n) * R + ((n - 3f) / n) * vecV;
 
-        var tempVP = new NewVertex();
-        tempVP.position = vp;
-        tempVP.EdgePoints = new List<EdgePoint>();
+        var tempVP = new NewVertex(vp);
         tempVP.EdgePoints.AddRange(rEdgePoint);
-        tempVP.Centroids = new List<Centroid>();
         tempVP.Centroids.AddRange(cent);
-        tempVP.id = this.vertexIndex;
 
         if (vertexPoints.Contains(tempVP))
         {
             return;
         }
         
-        this.vertexIndex++;
-        newVerticesList.Add(vp);
         vertexPoints.Add(tempVP);
-
-        /*
-        if (x >= 1)
-            Instantiate(centroidsPrefabs, new Vector3(vp.x * cube.transform.lossyScale.x,  vp.y * cube.transform.lossyScale.y, vp.z * cube.transform.lossyScale.z) + cube.transform.position , Quaternion.Euler(0, 0, 0));
-        */
+        
     }
 
     void Join()
     {
-        /*foreach (var ep in edgePoints)
-        {
-            foreach (var cent in ep.Centroids)
-            {
-                var lr1 = Instantiate(linePrefabs, Vector3.zero, Quaternion.Euler(0, 0, 0));
-                lr1.GetComponent<LineRenderer>().SetPosition(0,new Vector3(cent.position.x * cube.transform.lossyScale.x,  cent.position.y * cube.transform.lossyScale.y, cent.position.z * cube.transform.lossyScale.z) + cube.transform.position);
-                lr1.GetComponent<LineRenderer>().SetPosition(1,new Vector3(ep.position.x * cube.transform.lossyScale.x,  ep.position.y * cube.transform.lossyScale.y, ep.position.z * cube.transform.lossyScale.z) + cube.transform.position);
-            }
-        }
-        
-        foreach (var vp in vertexPoints)
-        {
-            foreach (var ep in vp.EdgePoints)
-            {
-                var lr1 = Instantiate(linePrefabs, Vector3.zero, Quaternion.Euler(0, 0, 0));
-                lr1.GetComponent<LineRenderer>().SetPosition(0,new Vector3(vp.position.x * cube.transform.lossyScale.x,  vp.position.y * cube.transform.lossyScale.y, vp.position.z * cube.transform.lossyScale.z) + cube.transform.position);
-                lr1.GetComponent<LineRenderer>().SetPosition(1,new Vector3(ep.position.x * cube.transform.lossyScale.x,  ep.position.y * cube.transform.lossyScale.y, ep.position.z * cube.transform.lossyScale.z) + cube.transform.position);
-            }
-        }*/
-        
+
         List<int> triangles = new List<int>();
+        List<Vector3> vectors = new List<Vector3>();
 
         var index = 0;
 
@@ -291,85 +256,73 @@ public class CatmullClark : MonoBehaviour
 
                 var vp = vertexPoints.First(x => x.EdgePoints.Contains(tempList[0]) && x.EdgePoints.Contains(tempList[1]));
                 
-                /*var lr1 = Instantiate(linePrefabs, Vector3.zero, Quaternion.Euler(0, 0, 0));
-                lr1.GetComponent<LineRenderer>().SetPosition(0,new Vector3(vp.position.x * cube.transform.lossyScale.x,  vp.position.y * cube.transform.lossyScale.y, vp.position.z * cube.transform.lossyScale.z) + cube.transform.position);
-                lr1.GetComponent<LineRenderer>().SetPosition(1,new Vector3(c.position.x * cube.transform.lossyScale.x,  c.position.y * cube.transform.lossyScale.y, c.position.z * cube.transform.lossyScale.z) + cube.transform.position);
-
-                lr1 = Instantiate(linePrefabs, Vector3.zero, Quaternion.Euler(0, 0, 0));
-                lr1.GetComponent<LineRenderer>().SetPosition(0,new Vector3(tempList[0].position.x * cube.transform.lossyScale.x,  tempList[0].position.y * cube.transform.lossyScale.y, tempList[0].position.z * cube.transform.lossyScale.z) + cube.transform.position);
-                lr1.GetComponent<LineRenderer>().SetPosition(1,new Vector3(c.position.x * cube.transform.lossyScale.x,  c.position.y * cube.transform.lossyScale.y, c.position.z * cube.transform.lossyScale.z) + cube.transform.position);
-
-                lr1 = Instantiate(linePrefabs, Vector3.zero, Quaternion.Euler(0, 0, 0));
-                lr1.GetComponent<LineRenderer>().SetPosition(0,new Vector3(tempList[1].position.x * cube.transform.lossyScale.x,  tempList[1].position.y * cube.transform.lossyScale.y, tempList[1].position.z * cube.transform.lossyScale.z) + cube.transform.position);
-                lr1.GetComponent<LineRenderer>().SetPosition(1,new Vector3(c.position.x * cube.transform.lossyScale.x,  c.position.y * cube.transform.lossyScale.y, c.position.z * cube.transform.lossyScale.z) + cube.transform.position);
-
-                lr1 = Instantiate(linePrefabs, Vector3.zero, Quaternion.Euler(0, 0, 0));
-                lr1.GetComponent<LineRenderer>().SetPosition(0,new Vector3(tempList[0].position.x * cube.transform.lossyScale.x,  tempList[0].position.y * cube.transform.lossyScale.y, tempList[0].position.z * cube.transform.lossyScale.z) + cube.transform.position);
-                lr1.GetComponent<LineRenderer>().SetPosition(1,new Vector3(vp.position.x * cube.transform.lossyScale.x,  vp.position.y * cube.transform.lossyScale.y, vp.position.z * cube.transform.lossyScale.z) + cube.transform.position);
-
-                lr1 = Instantiate(linePrefabs, Vector3.zero, Quaternion.Euler(0, 0, 0));
-                lr1.GetComponent<LineRenderer>().SetPosition(0,new Vector3(tempList[1].position.x * cube.transform.lossyScale.x,  tempList[1].position.y * cube.transform.lossyScale.y, tempList[1].position.z * cube.transform.lossyScale.z) + cube.transform.position);
-                lr1.GetComponent<LineRenderer>().SetPosition(1,new Vector3(vp.position.x * cube.transform.lossyScale.x,  vp.position.y * cube.transform.lossyScale.y, vp.position.z * cube.transform.lossyScale.z) + cube.transform.position);
-                */
-
-                //var firstTriangle = new List<Vector3>();
+                triangles.Add(index);
+                index++;
+                triangles.Add(index);
+                index++;
+                triangles.Add(index);
+                index++;
                 
-                triangles.Add(vp.id);
-                triangles.Add(c.id);
-                triangles.Add(tempList[0].id);
-
-                //Vector3 bc1 = getBarycentreVector3(firstTriangle);
-
-                //firstTriangle.Sort((x,y) => Vector3.Angle((bc1 - firstTriangle[0]), (bc1 - x)) <= Vector3.Angle((bc1 - firstTriangle[0]), (bc1 - y)) ? 1 : 0 );
+                var firstTriangle = new List<Vector3>();
                 
-                /*triangles.Add(vp.id);
-                triangles.Add(tempList[0].id);
-                triangles.Add(c.id);*/
-                
-                triangles.Add(vp.id);
-                triangles.Add(tempList[1].id);
-                triangles.Add(c.id);
-                
-                /*triangles.Add(vp.id);
-                triangles.Add(tempList[1].id);
-                triangles.Add(c.id);*/
+                firstTriangle.Add(vp.position);
+                firstTriangle.Add(c.position);
+                firstTriangle.Add(tempList[0].position);
 
+                var cross1 = Vector3.Cross((firstTriangle[1] - firstTriangle[0]),
+                    (firstTriangle[2] - firstTriangle[0]));
+
+                if (Vector3.Dot((barycentreMesh - firstTriangle[0]), cross1) > 0)
+                {
+                    (firstTriangle[1], firstTriangle[2]) = (firstTriangle[2], firstTriangle[1]);
+                }
+                
+                
+                vectors.AddRange(firstTriangle);
+
+                triangles.Add(index);
+                index++;
+                triangles.Add(index);
+                index++;
+                triangles.Add(index);
+                index++;
+                
+                var secondTriangle = new List<Vector3>();
+                
+                secondTriangle.Add(vp.position);
+                secondTriangle.Add(c.position);
+                secondTriangle.Add(tempList[1].position);
+
+                var cross2 = Vector3.Cross((secondTriangle[1] - secondTriangle[0]),
+                    (secondTriangle[2] - secondTriangle[0]));
+
+                if (Vector3.Dot((barycentreMesh - secondTriangle[0]), cross2) > 0)
+                {
+                    (secondTriangle[1], secondTriangle[2]) = (secondTriangle[2], secondTriangle[1]);
+                }
+                
+                vectors.AddRange(secondTriangle);
             }
             
             
         }
-        
-        /*foreach (var vp in vertexPoints)
-        {
-            foreach (var ep in vp.EdgePoints)
-            {
-                var tempCent = vp.Centroids.First(x => ep.Centroids.Contains(x));
-                triangles.Add(index);
-                index++;
-                triangles.Add(index);
-                index++;
-                triangles.Add(index);
-                index++;
-                vertex.Add(vp.position);
-                vertex.Add(ep.position);
-                vertex.Add(tempCent.position);
-            }
-        }*/
-        
-        Debug.Log(newVerticesList.Count);
 
-        mesh.mesh.vertices = newVerticesList.ToArray();
+        mesh.mesh.vertices = vectors.ToArray();
         mesh.mesh.triangles = triangles.ToArray();
         
         mesh.mesh.RecalculateBounds();
         mesh.mesh.RecalculateNormals();
     }
 
-    Vector3 getBarycentreVector3(List<Vector3> vectors)
+    Vector3 GetBarycentreMesh()
     {
         var res = Vector3.zero;
-        vectors.ForEach(x => res += x);
+        foreach (var v in mesh.mesh.vertices)
+        {
+            res += v;
+        }
 
-        return res / (float)vectors.Count;
+        res /= mesh.mesh.vertices.Length;
+        return res;
     }
 }
